@@ -7,14 +7,29 @@ import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime } from "../lib/utils";
 
 const ChatContainer = () => {
-  const { messages, selectedUser, getMessages, isMessagesLoading } =
-    useChatStore();
+  const {
+    messages,
+    selectedUser,
+    getMessages,
+    isMessagesLoading,
+    subcribeToMessage,
+    unSubcribeToMessage,
+  } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
 
   useEffect(() => {
     getMessages(selectedUser._id);
-  }, [selectedUser._id, getMessages]);
+    subcribeToMessage();
+
+    return () => unSubcribeToMessage();
+  }, [selectedUser._id, getMessages, subcribeToMessage, unSubcribeToMessage]);
+
+  useEffect(() => {
+    if (messageEndRef.current && messages) {
+      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   if (isMessagesLoading)
     return (
@@ -28,7 +43,7 @@ const ChatContainer = () => {
   return (
     <div className="flex-1 flex flex-col overflow-auto">
       <ChatHeader />
-      <div className="overflow-y-auto flex-1 auto space-y-4">
+      <div className="overflow-y-auto flex-1  space-y-4">
         {messages.map((message) => (
           <div
             key={message._id}
